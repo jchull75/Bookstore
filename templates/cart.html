@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block title %}Your Cart - Bookstore{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5 text-light"><i class="fas fa-shopping-cart me-2"></i>Your Cart</h1>
+
+    <div class="card bg-dark text-light">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-cart-arrow-down me-2"></i>Cart Items</h3>
+        </div>
+        <div class="card-body">
+            {% if not cart %}
+                <p class="text-center text-muted">Your cart is empty.</p>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom"><i class="fas fa-book me-2"></i>Browse Books</a>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover text-light">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book_id, item in cart.items() %}
+                            <tr>
+                                <td>{{ item.title }}</td>
+                                <td>${{ "%.2f" % item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ "%.2f" % (item.price * item.quantity) }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('remove_from_cart') }}" class="d-inline">
+                                        <input type="hidden" name="book_id" value="{{ book_id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash me-2"></i>Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">Total:</td>
+                                <td class="fw-bold">${{ "%.2f" % total }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Checkout Form -->
+                <form method="POST" action="{{ url_for('checkout_cart') }}" class="mt-4">
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label text-light">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="" disabled selected>Select a payment method</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="PayPal">PayPal</option>
+                            <option value="Cash on Delivery">Cash on Delivery</option>
+                        </select>
+                    </div>
+
+                    <div id="credit_card_fields" class="mb-3" style="display: none;">
+                        <label for="card_number" class="form-label text-light">Card Number</label>
+                        <input type="text" class="form-control" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+                        <label for="expiry_date" class="form-label mt-2 text-light">Expiry Date</label>
+                        <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY">
+                        <label for="cvv" class="form-label mt-2 text-light">CVV</label>
+                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123">
+                    </div>
+
+                    <div id="paypal_field" class="mb-3" style="display: none;">
+                        <label for="paypal_email" class="form-label text-light">PayPal Email</label>
+                        <input type="email" class="form-control" id="paypal_email" name="paypal_email" placeholder="example@paypal.com">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100"><i class="fas fa-check-circle me-2"></i>Order Now</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('payment_method').addEventListener('change', function() {
+        var creditCardFields = document.getElementById('credit_card_fields');
+        var paypalField = document.getElementById('paypal_field');
+        creditCardFields.style.display = this.value === 'Credit Card' ? 'block' : 'none';
+        paypalField.style.display = this.value === 'PayPal' ? 'block' : 'none';
+    });
+</script>
+{% endblock %}

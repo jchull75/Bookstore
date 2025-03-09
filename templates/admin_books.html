@@ -1,0 +1,12 @@
+{% extends "admin_layout.html" %}
+{% block title %}Manage Books - Bookstore{% endblock %}
+{% block content %}
+    <h1>Manage Books</h1>
+    <ul class="list-group">
+        {% for book in books %}
+            <li class="list-group-item">
+                {{ book.title }} - {{ book.author }} ({{ book.quantity }} in stock)
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,32 +1,98 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Signup - Bookstore App</title>
-    <style>
-        body { padding: 16px; font-family: Arial, sans-serif; }
-        h1 { font-size: 24px; }
-        input { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; margin: 16px 0; }
-        .message-success { color: green; }
-        .message-error { color: red; }
-    </style>
-</head>
-<body>
-    <h1>Sign Up</h1>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <p class="message-{{ category }}">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <form method="POST">
-        <label>First Name: <input type="text" name="first_name" value="{{ request.form.first_name or '' }}" required></label><br>
-        <label>Last Name: <input type="text" name="last_name" value="{{ request.form.last_name or '' }}" required></label><br>
-        <label>Username: <input type="text" name="username" value="{{ request.form.username or '' }}" required></label><br>
-        <label>Password: <input type="password" name="password" required></label><br>
-        <button type="submit">Sign Up</button>
-    </form>
-    <button onclick="window.location.href='{{ url_for('login') }}'">Back to Login</button>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block title %}Sign Up - Bookstore{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-5"><i class="fas fa-user-plus me-2"></i>Sign Up</h1>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="first_name" class="form-label">First Name</label>
+                        <input type="text" name="first_name" id="first_name" class="form-control" value="{{ request.form.first_name or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" class="form-control" value="{{ request.form.last_name or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" name="email" id="email" class="form-control" value="{{ request.form.email or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" name="password" id="password" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="street" class="form-label">Street Address</label>
+                        <input type="text" name="street" id="street" class="form-control" value="{{ request.form.street or '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" name="city" id="city" class="form-control" value="{{ request.form.city or '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" name="state" id="state" class="form-control" value="{{ request.form.state or '' }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="zipcode" class="form-label">Zipcode</label>
+                        <input type="text" name="zipcode" id="zipcode" class="form-control" value="{{ request.form.zipcode or '' }}" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn btn-secondary-custom btn-custom w-100 mb-3" data-bs-toggle="collapse" data-bs-target="#mailingAddress" aria-expanded="false" aria-controls="mailingAddress">
+                            <i class="fas fa-envelope me-2"></i>Add Mailing Address (Optional)
+                        </button>
+                        <div class="collapse" id="mailingAddress">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="mailing_street" class="form-label">Mailing Street</label>
+                                    <input type="text" name="mailing_street" id="mailing_street" class="form-control" value="{{ request.form.mailing_street or '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="mailing_city" class="form-label">Mailing City</label>
+                                    <input type="text" name="mailing_city" id="mailing_city" class="form-control" value="{{ request.form.mailing_city or '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="mailing_state" class="form-label">Mailing State</label>
+                                    <input type="text" name="mailing_state" id="mailing_state" class="form-control" value="{{ request.form.mailing_state or '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="mailing_zipcode" class="form-label">Mailing Zipcode</label>
+                                    <input type="text" name="mailing_zipcode" id="mailing_zipcode" class="form-control" value="{{ request.form.mailing_zipcode or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="favorite_genre" class="form-label">Favorite Genre (Optional)</label>
+                        <select name="favorite_genre" id="favorite_genre" class="form-control">
+                            <option value="" {% if not request.form.favorite_genre %}selected{% endif %}>Select a genre</option>
+                            <option value="Sci-Fi" {% if request.form.favorite_genre == 'Sci-Fi' %}selected{% endif %}>Sci-Fi</option>
+                            <option value="Fantasy" {% if request.form.favorite_genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                            <option value="Horror" {% if request.form.favorite_genre == 'Horror' %}selected{% endif %}>Horror</option>
+                            <option value="Post-Apocalyptic" {% if request.form.favorite_genre == 'Post-Apocalyptic' %}selected{% endif %}>Post-Apocalyptic</option>
+                            <option value="Thriller" {% if request.form.favorite_genre == 'Thriller' %}selected{% endif %}>Thriller</option>
+                            <option value="Historical Fiction" {% if request.form.favorite_genre == 'Historical Fiction' %}selected{% endif %}>Historical Fiction</option>
+                            <option value="Mystery" {% if request.form.favorite_genre == 'Mystery' %}selected{% endif %}>Mystery</option>
+                            <option value="Romance" {% if request.form.favorite_genre == 'Romance' %}selected{% endif %}>Romance</option>
+                            <option value="Classic" {% if request.form.favorite_genre == 'Classic' %}selected{% endif %}>Classic</option>
+                            <option value="Dystopian" {% if request.form.favorite_genre == 'Dystopian' %}selected{% endif %}>Dystopian</option>
+                            <option value="Gothic" {% if request.form.favorite_genre == 'Gothic' %}selected{% endif %}>Gothic</option>
+                            <option value="Adventure" {% if request.form.favorite_genre == 'Adventure' %}selected{% endif %}>Adventure</option>
+                            <option value="Mythology" {% if request.form.favorite_genre == 'Mythology' %}selected{% endif %}>Mythology</option>
+                            <option value="Superhero" {% if request.form.favorite_genre == 'Superhero' %}selected{% endif %}>Superhero</option>
+                            <option value="Action" {% if request.form.favorite_genre == 'Action' %}selected{% endif %}>Action</option>
+                            <option value="Crime Noir" {% if request.form.favorite_genre == 'Crime Noir' %}selected{% endif %}>Crime Noir</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary-custom btn-custom w-100"><i class="fas fa-check me-2"></i>Sign Up</button>
+                    </div>
+                </div>
+            </form>
+            <p class="text-center mt-3">Already have an account? <a href="{{ url_for('customer_login') }}">Log In</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
