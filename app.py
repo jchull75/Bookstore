@@ -610,6 +610,7 @@ def checkout():
 
     flash("Purchase successful! Thank you for your order.", 'success')
     return redirect(url_for('customer_home'))
+
 @app.route('/leave_review', methods=['GET', 'POST'])
 def leave_review():
     if 'user' not in session:
@@ -871,24 +872,26 @@ def complete_supplier_order():
         return redirect(url_for('admin_login'))
 
     order_id = request.form.get('order_id')
-    if order_id:
-        conn = sqlite3.connect('bookstore.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT book_id, quantity, status FROM SupplierOrders WHERE order_id = ?", (order_id,))
-        order = cursor.fetchone()
-        if order and order['status'] == 'Pending':
-            cursor.execute("UPDATE SupplierOrders SET status = 'Completed' WHERE order_id = ?", (order_id,))
-            cursor.execute("UPDATE Books SET quantity = quantity + ? WHERE book_id = ?", (order['quantity'], order['book_id']))
-            conn.commit()
-            flash('Supplier order completed successfully!', 'success')
-        else:
-            flash('Order not found or not pending.', 'danger')
-        conn.close()
-    else:
+    if not order_id:
         flash('Invalid order ID.', 'danger')
+        return redirect(url_for('admin_supplier_orders'))
+
+    # Use db_helper to fetch the order
+    conn = db_helper._get_connection()  # Already has row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT book_id, quantity, status FROM SupplierOrders WHERE order_id = ?", (order_id,))
+    order = cursor.fetchone()  # Now a Row object: {'book_id': '1', 'quantity': 10, 'status': 'Pending'}
+    if order and order['status'] == 'Pending':
+        cursor.execute("UPDATE SupplierOrders SET status = 'Completed' WHERE order_id = ?", (order_id,))
+        cursor.execute("UPDATE Books SET quantity = quantity + ? WHERE book_id = ?", (order['quantity'], order['book_id']))
+        conn.commit()
+        flash('Supplier order completed successfully!', 'success')
+    else:
+        flash('Order not found or not pending.', 'danger')
+    conn.close()
     return redirect(url_for('admin_supplier_orders'))
 
-@app.route('/}}-supplier_order', methods=['POST'])
+@app.route('/cancel_supplier_order', methods=['POST'])
 def cancel_supplier_order():
     if 'user' not in session or db_helper.get_user_role(session['user']) != 'admin':
         flash('Please log in as an admin to access this page.', 'warning')
