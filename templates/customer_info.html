@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<h1>Edit Your Profile</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ profile.first_name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ profile.last_name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ profile.email }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="street" class="form-label">Street</label>
+                <input type="text" class="form-control" id="street" name="street" value="{{ profile.street }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" value="{{ profile.city }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" class="form-control" id="state" name="state" value="{{ profile.state }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="zipcode" class="form-label">Zipcode</label>
+                <input type="text" class="form-control" id="zipcode" name="zipcode" value="{{ profile.zipcode }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="mailing_street" class="form-label">Mailing Street (Optional)</label>
+                <input type="text" class="form-control" id="mailing_street" name="mailing_street" value="{{ profile.mailing_street }}">
+            </div>
+            <div class="mb-3">
+                <label for="mailing_city" class="form-label">Mailing City (Optional)</label>
+                <input type="text" class="form-control" id="mailing_city" name="mailing_city" value="{{ profile.mailing_city }}">
+            </div>
+            <div class="mb-3">
+                <label for="mailing_state" class="form-label">Mailing State (Optional)</label>
+                <input type="text" class="form-control" id="mailing_state" name="mailing_state" value="{{ profile.mailing_state }}">
+            </div>
+            <div class="mb-3">
+                <label for="mailing_zipcode" class="form-label">Mailing Zipcode (Optional)</label>
+                <input type="text" class="form-control" id="mailing_zipcode" name="mailing_zipcode" value="{{ profile.mailing_zipcode }}">
+            </div>
+            <div class="mb-3">
+                <label for="favorite_genre" class="form-label">Favorite Genre</label>
+                <select class="form-select" id="favorite_genre" name="favorite_genre">
+                    <option value="" {% if not profile.favorite_genre %}selected{% endif %}>Select a genre (optional)</option>
+                    {% for genre in genres %}
+                    <option value="{{ genre }}" {% if profile.favorite_genre == genre %}selected{% endif %}>{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary-custom">Update Profile</button>
+            <a href="{{ url_for('customer_home') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

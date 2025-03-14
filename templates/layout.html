@@ -3,54 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Bookstore{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - Bookstore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #2c2c2c; /* Dark gray background */
+            color: #e0e0e0; /* Light text for contrast */
+        }
+        .navbar {
+            background-color: #1a1a1a; /* Darker navbar */
+        }
+        .navbar-brand, .nav-link {
+            color: #e0e0e0 !important; /* Light text for navbar */
+        }
+        .nav-link:hover {
+            color: #ffd700 !important; /* Gold hover effect */
+        }
+        .btn-primary-custom {
+            background-color: #ffd700; /* Gold button */
+            border-color: #ffd700;
+            color: #1a1a1a; /* Dark text on button */
+        }
+        .btn-primary-custom:hover {
+            background-color: #e6c200; /* Darker gold on hover */
+            border-color: #e6c200;
+            color: #1a1a1a; /* Ensure text stays dark on hover */
+        }
+        .card {
+            background-color: #3c3c3c; /* Darker card background */
+            color: #e0e0e0;
+        }
+        .table {
+            background-color: #3c3c3c; /* Darker table background */
+            color: #e0e0e0;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #4a4a4a; /* Slightly lighter for stripes */
+        }
+        .table th, .table td {
+            border-color: #5a5a5a; /* Light border for contrast */
+        }
+        .badge.bg-warning {
+            background-color: #e6c200 !important; /* Match gold theme */
+            color: #1a1a1a;
+        }
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        .text-muted {
+            color: #a0a0a0 !important; /* Lighter gray for muted text */
+        }
+    </style>
 </head>
-<body class="bg-dark text-light">
+<body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('home') }}">Bookstore</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('bookstore') }}"><i class="fas fa-book me-2"></i>Books</a>
-                    </li>
-                    {% if 'user' in session and not is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart me-2"></i>Cart</a>
-                    </li>
+                    {% if not is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('bookstore') }}">Shop</a>
+                        </li>
                     {% endif %}
                     {% if 'user' in session %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ session['user'] }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                            {% if is_admin %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_inventory') }}">Inventory</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('supplier_orders') }}">Supplier Orders</a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
-                        </ul>
-                    </li>
+                        {% if is_admin %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_supplier_orders') }}">Supplier Orders</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_customer_orders') }}">Customer Orders</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_customer_wishlist') }}">Customer Wishlist</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_customer_info') }}">Customer Info</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin_inventory') }}">Inventory</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="customerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    My Account
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="customerDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('customer_home') }}">Home</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('customer_info') }}">My Info</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('order_tracking') }}">Order Tracking</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('wishlist') }}">Wishlist</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('cart') }}">Cart {% if session.cart_count %}<span class="badge bg-primary">{{ session.cart_count }}</span>{% endif %}</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('customer_login') }}">Customer Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_login') }}">Admin Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('customer_login') }}">Customer Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin_login') }}">Admin Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary-custom btn-sm mx-2" href="{{ url_for('signup') }}">Signup</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -59,24 +126,21 @@
 
     <!-- Flash Messages -->
     <div class="container mt-3">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
     </div>
 
     <!-- Main Content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    {% block content %}{% endblock %}
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

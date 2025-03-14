@@ -1,93 +1,150 @@
-{% extends "layout.html" %}
-{% block title %}Your Cart - Bookstore{% endblock %}
-{% block content %}
-<div class="container py-5">
-    <h1 class="text-center mb-5 text-light"><i class="fas fa-shopping-cart me-2"></i>Your Cart</h1>
+{% extends "base.html" %}
 
-    <div class="card bg-dark text-light">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-cart-arrow-down me-2"></i>Cart Items</h3>
-        </div>
-        <div class="card-body">
-            {% if not cart %}
-                <p class="text-center text-muted">Your cart is empty.</p>
-                <div class="text-center mt-3">
-                    <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom"><i class="fas fa-book me-2"></i>Browse Books</a>
-                </div>
-            {% else %}
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<h1>Your Shopping Cart</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card" style="background-color: #e8dcca; border: 1px dashed #c9b18a; box-shadow: 0 4px 8px rgba(74, 47, 35, 0.2);">
+            <div class="card-body">
+                <h3 style="font-family: 'Playfair Display', serif; color: #4a2f23;"><i class="fa fa-shopping-cart me-2"></i> Cart Tracker</h3>
+                <p class="lead" style="color: #7a6a55;">Review your selected items and proceed to checkout.</p>
+                {% if cart %}
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover text-light">
+                    <table class="table table-striped" style="background-color: #f0e4d7; color: #4a2f23;">
                         <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Total</th>
-                                <th>Actions</th>
+                            <tr style="background-color: #c9b18a;">
+                                <th style="border-color: #d9a23b;">Book Title</th>
+                                <th style="border-color: #d9a23b;">Price</th>
+                                <th style="border-color: #d9a23b;">Quantity</th>
+                                <th style="border-color: #d9a23b;">Subtotal</th>
+                                <th style="border-color: #d9a23b;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for book_id, item in cart.items() %}
+                            {% for item in cart %}
                             <tr>
                                 <td>{{ item.title }}</td>
-                                <td>${{ "%.2f" % item.price }}</td>
+                                <td>${{ item.price | default(0) | float | round(2) }}</td>
                                 <td>{{ item.quantity }}</td>
-                                <td>${{ "%.2f" % (item.price * item.quantity) }}</td>
+                                <td>${{ (item.price * item.quantity) | default(0) | float | round(2) }}</td>
                                 <td>
-                                    <form method="POST" action="{{ url_for('remove_from_cart') }}" class="d-inline">
-                                        <input type="hidden" name="book_id" value="{{ book_id }}">
-                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash me-2"></i>Remove</button>
+                                    <form method="POST" action="{{ url_for('update_cart') }}" style="display:inline;">
+                                        <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control d-inline-block w-auto" style="width: 70px; background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                                        <button type="submit" class="btn btn-primary-custom btn-sm">Update</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('remove_from_cart') }}" style="display:inline;">
+                                        <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" style="background-color: #c77a7a; border-color: #a65a5a;">Remove</button>
                                     </form>
                                 </td>
                             </tr>
                             {% endfor %}
-                            <tr>
-                                <td colspan="4" class="text-end fw-bold">Total:</td>
-                                <td class="fw-bold">${{ "%.2f" % total }}</td>
-                            </tr>
                         </tbody>
                     </table>
+                    <p><strong>Total:</strong> ${{ total | default(0) | float | round(2) }}</p>
                 </div>
 
-                <!-- Checkout Form -->
-                <form method="POST" action="{{ url_for('checkout_cart') }}" class="mt-4">
+                <h4 class="mt-4" style="font-family: 'Playfair Display', serif; color: #4a2f23;">Checkout</h4>
+                <form method="POST" action="{{ url_for('checkout') }}" id="checkoutForm">
                     <div class="mb-3">
-                        <label for="payment_method" class="form-label text-light">Payment Method</label>
-                        <select class="form-select" id="payment_method" name="payment_method" required>
-                            <option value="" disabled selected>Select a payment method</option>
+                        <label for="payment_method" class="form-label" style="color: #4a2f23;">Payment Method:</label>
+                        <select name="payment_method" id="payment_method" class="form-select" required onchange="togglePaymentFields()" style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                            <option value="">Select Payment Method</option>
                             <option value="Credit Card">Credit Card</option>
                             <option value="PayPal">PayPal</option>
-                            <option value="Cash on Delivery">Cash on Delivery</option>
                         </select>
                     </div>
 
-                    <div id="credit_card_fields" class="mb-3" style="display: none;">
-                        <label for="card_number" class="form-label text-light">Card Number</label>
-                        <input type="text" class="form-control" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
-                        <label for="expiry_date" class="form-label mt-2 text-light">Expiry Date</label>
-                        <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY">
-                        <label for="cvv" class="form-label mt-2 text-light">CVV</label>
-                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123">
+                    <!-- Credit Card Fields -->
+                    <div id="creditCardFields" class="payment-fields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label" style="color: #4a2f23;">Card Number:</label>
+                            <input type="text" name="card_number" id="card_number" class="form-control" placeholder="1234 5678 9012 3456" required pattern="\d{16}" title="Please enter a 16-digit card number" style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="expiry_date" class="form-label" style="color: #4a2f23;">Expiry Date:</label>
+                                <input type="month" name="expiry_date" id="expiry_date" class="form-control" required style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cvv" class="form-label" style="color: #4a2f23;">CVV:</label>
+                                <input type="text" name="cvv" id="cvv" class="form-control" placeholder="123" required pattern="\d{3,4}" title="Please enter a 3 or 4-digit CVV" style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="paypal_field" class="mb-3" style="display: none;">
-                        <label for="paypal_email" class="form-label text-light">PayPal Email</label>
-                        <input type="email" class="form-control" id="paypal_email" name="paypal_email" placeholder="example@paypal.com">
+                    <!-- PayPal Fields -->
+                    <div id="paypalFields" class="payment-fields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="paypal_email" class="form-label" style="color: #4a2f23;">PayPal Email:</label>
+                            <input type="email" name="paypal_email" id="paypal_email" class="form-control" placeholder="example@paypal.com" required style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="paypal_password" class="form-label" style="color: #4a2f23;">PayPal Password:</label>
+                            <input type="password" name="paypal_password" id="paypal_password" class="form-control" required style="background-color: #f2e8cf; border: 1px solid #c9b18a; color: #4a2f23;">
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-success w-100"><i class="fas fa-check-circle me-2"></i>Order Now</button>
+                    <button type="submit" class="btn btn-success mt-3" style="background-color: #8a9a5b; border-color: #6b7845; color: #f2e8cf;">Proceed to Payment</button>
                 </form>
-            {% endif %}
+                {% else %}
+                <p style="color: #7a6a55;">Your cart is empty.</p>
+                <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom mt-3">Browse Books</a>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    document.getElementById('payment_method').addEventListener('change', function() {
-        var creditCardFields = document.getElementById('credit_card_fields');
-        var paypalField = document.getElementById('paypal_field');
-        creditCardFields.style.display = this.value === 'Credit Card' ? 'block' : 'none';
-        paypalField.style.display = this.value === 'PayPal' ? 'block' : 'none';
-    });
-</script>
+    <div class="mt-5 text-center">
+        <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom"><i class="fa fa-book me-2"></i> Browse More Books</a>
+        <a href="{{ url_for('customer_home') }}" class="btn btn-outline-secondary ms-2" style="border-color: #c9b18a; color: #4a2f23;"><i class="fa fa-home me-2"></i> Back to Profile</a>
+    </div>
+
+    <!-- JavaScript for toggling payment fields and prefilled values -->
+    <script>
+        function togglePaymentFields() {
+            const paymentMethod = document.getElementById('payment_method').value;
+            const creditCardFields = document.getElementById('creditCardFields');
+            const paypalFields = document.getElementById('paypalFields');
+
+            if (paymentMethod === 'Credit Card') {
+                creditCardFields.style.display = 'block';
+                paypalFields.style.display = 'none';
+                document.getElementById('card_number').value = '4111111111111111';
+                document.getElementById('expiry_date').value = '2025-12';
+                document.getElementById('cvv').value = '123';
+                document.getElementById('card_number').required = true;
+                document.getElementById('expiry_date').required = true;
+                document.getElementById('cvv').required = true;
+                document.getElementById('paypal_email').required = false;
+                document.getElementById('paypal_password').required = false;
+            } else if (paymentMethod === 'PayPal') {
+                creditCardFields.style.display = 'none';
+                paypalFields.style.display = 'block';
+                document.getElementById('paypal_email').value = 'testuser@paypal.com';
+                document.getElementById('paypal_password').value = 'password123';
+                document.getElementById('card_number').required = false;
+                document.getElementById('expiry_date').required = false;
+                document.getElementById('cvv').required = false;
+                document.getElementById('paypal_email').required = true;
+                document.getElementById('paypal_password').required = true;
+            } else {
+                creditCardFields.style.display = 'none';
+                paypalFields.style.display = 'none';
+                document.getElementById('card_number').required = false;
+                document.getElementById('expiry_date').required = false;
+                document.getElementById('cvv').required = false;
+                document.getElementById('paypal_email').required = false;
+                document.getElementById('paypal_password').required = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            togglePaymentFields();
+        });
+    </script>
 {% endblock %}

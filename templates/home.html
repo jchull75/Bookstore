@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Bookstore Home{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<div class="container-fluid py-5 text-center mb-5" style="background: linear-gradient(135deg, rgba(42,42,42,0.9), rgba(60,60,60,0.9)), url('{{ url_for('static', filename='book-bg.jpg') }}'); background-size: cover;">
+    <h1><i class="fas fa-book me-2"></i>Welcome to Your Bookstore</h1>
+    <p class="lead" style="color: #dddddd;">Discover a world of stories at your fingertips.</p>
+    <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom mt-3"><i class="fas fa-book-open me-2"></i>Browse Now</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3><i class="fas fa-shopping-bag me-2"></i>Start Shopping</h3>
+                <p>Browse our curated collection of books across all genres.</p>
+                <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom btn-custom"><i class="fas fa-book-open me-2"></i>Browse Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3><i class="fas fa-user-plus me-2"></i>Join Us</h3>
+                <p>Sign up or log in to manage your wishlist and orders.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('signup') }}" class="btn btn-secondary-custom btn-custom"><i class="fas fa-user me-2"></i>Sign Up</a>
+                    <a href="{{ url_for('customer_login') }}" class="btn btn-primary-custom btn-custom"><i class="fas fa-sign-in-alt me-2"></i>Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

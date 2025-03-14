@@ -1,23 +1,40 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
+
 {% block title %}Customer Login{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="text-center mb-5"><i class="fas fa-sign-in-alt me-2"></i>Customer Login</h1>
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                <div class="mb-3">
-                    <label for="identifier" class="form-label">Username or Email</label>
-                    <input type="text" class="form-control" id="identifier" name="identifier" value="{{ request.form.identifier or '' }}" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary-custom btn-custom w-100"><i class="fas fa-check me-2"></i>Login</button>
-            </form>
-            <p class="text-center mt-3">Need an account? <a href="{{ url_for('signup') }}">Sign Up</a> | <a href="{{ url_for('bookstore') }}">Back to Store</a></p>
+<h1>Customer Login</h1>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="bi bi-box-arrow-in-right me-2"></i> Sign In</h3>
+                <p class="lead">Log in to access your account and start shopping.</p>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="identifier" class="form-label">Email or Username</label>
+                        <input type="text" name="identifier" id="identifier" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" name="password" id="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom">Login</button>
+                </form>
+            </div>
         </div>
     </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="bi bi-person-plus-fill me-2"></i> New to Book Haven?</h3>
+                <p class="lead">Create an account to explore our books and save your favorites.</p>
+                <a href="{{ url_for('signup') }}" class="btn btn-outline-secondary"><i class="bi bi-person-plus me-2"></i> Sign Up</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-5 text-center">
+    <a href="{{ url_for('home') }}" class="btn btn-primary-custom"><i class="bi bi-arrow-left me-2"></i> Back to Home</a>
 </div>
 {% endblock %}

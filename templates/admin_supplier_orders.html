@@ -1,74 +1,190 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
+
 {% block title %}Admin - Supplier Orders{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <h1>📦 Supplier Orders</h1>
+<h1>Supplier Orders</h1>
 
-        <div class="d-flex justify-content-center gap-3 mb-4">
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary-custom btn-custom">Admin Dashboard</a>
-            <a href="{{ url_for('admin_books') }}" class="btn btn-outline-secondary btn-custom">Manage Books</a>
-            <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-secondary btn-custom">Customer Orders</a>
-            <a href="{{ url_for('logout') }}" class="btn btn-danger btn-custom">Logout</a>
-        </div>
-
-        <!-- Form to Add Supplier Order -->
-        <h3>Add New Supplier Order</h3>
-        <form method="POST" class="mb-4">
-            <div class="row g-3">
-                <div class="col-md-3">
+<div class="card">
+    <div class="card-body">
+        <h3><i class="bi bi-truck me-2"></i> Add Supplier Order</h3>
+        <form method="POST" id="supplierOrderForm">
+            <div class="row mb-3">
+                <div class="col-md-4">
                     <label for="supplier" class="form-label">Supplier</label>
-                    <input type="text" class="form-control" id="supplier" name="supplier" placeholder="e.g., Book Co." required>
-                </div>
-                <div class="col-md-3">
-                    <label for="book_title" class="form-label">Book Title</label>
-                    <input type="text" class="form-control" id="book_title" name="book_title" placeholder="e.g., Dune" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="quantity" class="form-label">Quantity</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="price" class="form-label">Price ($)</label>
-                    <input type="number" step="0.01" class="form-control" id="price" name="price" min="0.01" value="0.00" required>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary-custom btn-custom w-100">Add Order</button>
-                </div>
-            </div>
-        </form>
-
-        <!-- Supplier Orders Table -->
-        {% if supplier_orders|length == 0 %}
-            <p class="text-center text-muted">No supplier orders have been placed yet.</p>
-        {% else %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Supplier</th>
-                            <th>Book Title</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                            <th>Order Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in supplier_orders %}
-                            <tr>
-                                <td>{{ order.order_id }}</td>
-                                <td>{{ order.supplier }}</td>
-                                <td>{{ order.book_title }}</td>
-                                <td>{{ order.quantity }}</td>
-                                <td>${{ "%.2f" % order.price }}</td>
-                                <td>${{ "%.2f" % order.total }}</td>
-                                <td>{{ order.order_date }}</td>
-                            </tr>
+                    <select class="form-select" id="supplier" name="supplier" required>
+                        <option value="" disabled selected>Select a supplier</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier }}">{{ supplier }}</option>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </select>
+                </div>
             </div>
+            <div id="bookOrderFields">
+                <div class="row mb-3 book-order-row">
+                    <div class="col-md-4">
+                        <label for="book_id_0" class="form-label">Book</label>
+                        <select class="form-select" id="book_id_0" name="book_id_0" required onchange="updatePrice(0)">
+                            <option value="" disabled selected>Select a book</option>
+                            {% for book in books %}
+                            <option value="{{ book.book_id }}" data-price="{{ book.price }}">{{ book.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="quantity_0" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantity_0" name="quantity_0" min="1" value="1" required oninput="updateTotal()">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="price_0" class="form-label">Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="price_0" name="price_0" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Total ($)</label>
+                        <p class="fw-bold" id="total_0">$0.00</p>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeBookRow(this)" disabled>Remove</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <button type="button" class="btn btn-outline-secondary" onclick="addBookRow()">Add Another Book</button>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Order Total ($)</label>
+                <p class="fw-bold" id="orderTotal">$0.00</p>
+            </div>
+            <button type="submit" name="order_book" class="btn btn-primary-custom">Place Order</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h3><i class="bi bi-list-ul me-2"></i> Current Supplier Orders</h3>
+        {% if supplier_orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Supplier</th>
+                        <th>Book Title</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in supplier_orders %}
+                    <tr>
+                        <td>{{ order.order_id }}</td>
+                        <td>{{ order.supplier }}</td>
+                        <td>{{ order.title }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>${{ order.total | default(0) | float | round(2) }}</td>
+                        <td>{{ order.order_date }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>
+                            {% if order.status == 'Pending' %}
+                            <form method="POST" action="{{ url_for('complete_supplier_order') }}" style="display:inline;">
+                                <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                                <button type="submit" class="btn btn-success btn-sm">Complete</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('cancel_supplier_order') }}" style="display:inline;">
+                                <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No supplier orders found.</p>
         {% endif %}
     </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary-custom"><i class="bi bi-arrow-left me-2"></i> Return to Dashboard</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2" onclick="return confirm('Are you sure you want to log out?');"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+</div>
+
+<script>
+let bookRowCount = 1;
+
+function updatePrice(index) {
+    const select = document.getElementById(`book_id_${index}`);
+    const priceInput = document.getElementById(`price_${index}`);
+    const selectedOption = select.options[select.selectedIndex];
+    const price = parseFloat(selectedOption.getAttribute('data-price')) * 0.6 || 0;
+    priceInput.value = price.toFixed(2);
+    updateTotal();
+}
+
+function updateTotal() {
+    let orderTotal = 0;
+    for (let i = 0; i < bookRowCount; i++) {
+        if (document.getElementById(`book_id_${i}`)) {
+            const price = parseFloat(document.getElementById(`price_${i}`).value) || 0;
+            const quantity = parseInt(document.getElementById(`quantity_${i}`).value) || 0;
+            const total = price * quantity;
+            document.getElementById(`total_${i}`).textContent = '$' + total.toFixed(2);
+            orderTotal += total;
+        }
+    }
+    document.getElementById('orderTotal').textContent = '$' + orderTotal.toFixed(2);
+}
+
+function addBookRow() {
+    const container = document.getElementById('bookOrderFields');
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-3 book-order-row';
+    newRow.innerHTML = `
+        <div class="col-md-4">
+            <label for="book_id_${bookRowCount}" class="form-label">Book</label>
+            <select class="form-select" id="book_id_${bookRowCount}" name="book_id_${bookRowCount}" required onchange="updatePrice(${bookRowCount})">
+                <option value="" disabled selected>Select a book</option>
+                {% for book in books %}
+                <option value="{{ book.book_id }}" data-price="{{ book.price }}">{{ book.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="quantity_${bookRowCount}" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="quantity_${bookRowCount}" name="quantity_${bookRowCount}" min="1" value="1" required oninput="updateTotal()">
+        </div>
+        <div class="col-md-2">
+            <label for="price_${bookRowCount}" class="form-label">Price ($)</label>
+            <input type="number" step="0.01" class="form-control" id="price_${bookRowCount}" name="price_${bookRowCount}" readonly>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Total ($)</label>
+            <p class="fw-bold" id="total_${bookRowCount}">$0.00</p>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeBookRow(this)">Remove</button>
+        </div>
+    `;
+    container.appendChild(newRow);
+    bookRowCount++;
+    updateTotal();
+}
+
+function removeBookRow(button) {
+    button.closest('.book-order-row').remove();
+    updateTotal();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updatePrice(0);
+    updateTotal();
+});
+</script>
 {% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Customer Info{% endblock %}
+
+{% block content %}
+<h1>Customer Info</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h3><i class="bi bi-people-fill me-2"></i> All Customers</h3>
+        {% if users|length == 0 %}
+        <p class="text-center text-muted">No customers yet.</p>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Street</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Zipcode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.last_name }}</td>
+                        <td>{{ user.street }}</td>
+                        <td>{{ user.city }}</td>
+                        <td>{{ user.state }}</td>
+                        <td>{{ user.zipcode }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary-custom"><i class="bi bi-arrow-left me-2"></i> Return to Dashboard</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2" onclick="return confirm('Are you sure you want to log out?');"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Order Tracking{% endblock %}
+
+{% block content %}
+<h1>Order Tracking</h1>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="bi bi-truck me-2"></i> Your Orders</h3>
+                <p class="lead">View the status of all your book orders.</p>
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Book Title</th>
+                                <th>Quantity</th>
+                                <th>Total Price</th>
+                                <th>Order Date</th>
+                                <th>Status</th>
+                                <th>Payment Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>{{ order.order_id }}</td>
+                                <td>{{ order.title }}</td>
+                                <td>{{ order.quantity }}</td>
+                                <td>${{ (order.price * order.quantity) | default(0) | float | round(2) }}</td>
+                                <td>{{ order.order_date }}</td>
+                                <td>{{ order.status }}</td>
+                                <td>{{ order.payment_method }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No orders found.</p>
+                <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom mt-3">Start Shopping</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="bi bi-info-circle-fill me-2"></i> Order Help</h3>
+                <p class="lead">Need assistance? Contact us for support with your orders.</p>
+                <a href="#" class="btn btn-outline-secondary">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-5 text-center">
+    <a href="{{ url_for('customer_home') }}" class="btn btn-primary-custom"><i class="bi bi-arrow-left me-2"></i> Back to Home</a>
+</div>
+{% endblock %}

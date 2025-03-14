@@ -1,77 +1,108 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
+
 {% block title %}Bookstore{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="text-center mb-5 text-light"><i class="fas fa-book me-2"></i>Bookstore</h1>
+<h1 class="text-center">Bookstore</h1>
 
-    <!-- Search Form -->
-    <form method="POST" class="mb-4" onsubmit="document.getElementById('search-loading').style.display='block';">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search by title, author, or genre..." value="{{ request.form.search or '' }}">
-            <button type="submit" class="btn btn-primary-custom"><i class="fas fa-search me-2"></i>Search</button>
-            <div class="spinner-border text-light ms-2" id="search-loading" style="display: none;"></div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center d-flex flex-column align-items-center">
+                <h3 class="text-center"><i class="bi bi-search me-2"></i> Find Your Book</h3>
+                <p class="lead text-center">Search and explore our collection of books. Sort by your preference to discover new favorites!</p>
+
+                <form method="POST" class="mb-3 w-100">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control text-center" placeholder="Search books..." aria-label="Search">
+                        <button type="submit" class="btn btn-primary-custom"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+
+                <form method="GET" class="mb-3 w-100">
+                    <label for="sort" class="form-label">Sort by:</label>
+                    <select name="sort" id="sort" class="form-select text-center" onchange="this.form.submit()">
+                        {% for key, value in sort_options.items() %}
+                        <option value="{{ key }}" {% if sort == key %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
         </div>
-    </form>
-
-    <!-- Sort Options -->
-    <div class="dropdown mb-4">
-        <button class="btn btn-secondary-custom dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            Sort by: {{ sort_options[sort or 'default'] }}
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ url_for('bookstore', page=page, sort='title_asc') }}">Title (A-Z)</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('bookstore', page=page, sort='title_desc') }}">Title (Z-A)</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('bookstore', page=page, sort='price_asc') }}">Price (Low to High)</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('bookstore', page=page, sort='price_desc') }}">Price (High to Low)</a></li>
-        </ul>
     </div>
+</div>
 
-    <!-- Book Cards -->
+<!-- Books List - Automatically Displayed -->
+<div class="mt-3">
     <div class="row">
         {% for book in books %}
         <div class="col-md-4 mb-4">
-            <div class="card bg-dark text-light book-card">
-                <img src="{{ book.cover_image }}" class="card-img-top" alt="{{ book.title }}"
-                     onerror="this.src='{{ url_for('static', filename='default_cover.jpg') }}';">
-                <div class="card-body">
-                    <h5 class="card-title">{{ book.title }}</h5>
-                    <p class="card-text">by {{ book.author }}</p>
-                    <p class="card-text">Genre: {{ book.genre }}</p>
-                    <p class="card-text">Price: ${{ "%.2f" % book.price }}</p>
-                    <p class="card-text">In Stock: {{ book.quantity }}</p>
+            <div class="card h-100">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#bookModal{{ book.book_id }}">
+                    <img src="{{ book.image_url }}" class="card-img-top" alt="{{ book.title }}" style="cursor: pointer;">
+                </a>
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ book.title }}</h3>
+                    <p class="card-text">by {{ book.author }} - ${{ book.price | default(0) | float | round(2) }}</p>
+                    <p class="card-text"><small class="text-muted">Genre: {{ book.genre }}</small></p>
+                </div>
+            </div>
 
-                    <!-- Add to Wishlist (Existing) -->
-                    {% if 'user' in session and not is_admin %}
-                    <form method="POST" action="{{ url_for('add_to_wishlist') }}" class="mb-2">
-                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                        <button type="submit" class="btn btn-outline-light w-100" {% if book.quantity == 0 %}disabled{% endif %}>
-                            <i class="fas fa-heart me-2"></i>Add to Wishlist
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    <!-- Buy Now Button -->
-                    {% if 'user' in session and not is_admin %}
-                    <form method="POST" action="{{ url_for('checkout') }}" class="mb-2">
-                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                        <button type="submit" class="btn btn-success w-100" {% if book.quantity == 0 %}disabled{% endif %}>
-                            <i class="fas fa-shopping-cart me-2"></i>Buy Now
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    <!-- Add to Cart Button -->
-                    {% if 'user' in session and not is_admin %}
-                    <form method="POST" action="{{ url_for('add_to_cart') }}">
-                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                        <div class="input-group">
-                            <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ book.quantity }}" {% if book.quantity == 0 %}disabled{% endif %}>
-                            <button type="submit" class="btn btn-primary-custom" {% if book.quantity == 0 %}disabled{% endif %}>
-                                <i class="fas fa-cart-plus me-2"></i>Add to Cart
-                            </button>
+            <!-- Book Details Modal -->
+            <div class="modal fade" id="bookModal{{ book.book_id }}" tabindex="-1" aria-labelledby="bookModalLabel{{ book.book_id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bookModalLabel{{ book.book_id }}">{{ book.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                    </form>
-                    {% endif %}
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <img src="{{ book.image_url }}" class="img-fluid" alt="{{ book.title }}">
+                                </div>
+                                <div class="col-md-8">
+                                    <p><strong>Author:</strong> {{ book.author }}</p>
+                                    <p><strong>Price:</strong> ${{ book.price | default(0) | float | round(2) }}</p>
+                                    <p><strong>Genre:</strong> {{ book.genre }}</p>
+                                    <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+                                    <p><strong>Description:</strong> {{ book.description }}</p>
+                                    <p><strong>Publisher:</strong> {{ book.publisher }}</p>
+                                    <p><strong>Date Published:</strong> {{ book.date_published }}</p>
+                                    <h6>Reviews:</h6>
+                                    {% if book.reviews %}
+                                    <ul>
+                                        {% for review in book.reviews %}
+                                        <li>{{ review.customer_email }}: {{ review.rating }}/5 - {{ review.comment }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    <p>No reviews yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            {% if 'user' in session %}
+                            <form method="POST" action="{{ url_for('add_to_cart') }}" style="display:inline;">
+                                <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary-custom">Add to Cart</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('buy_now') }}" style="display:inline;">
+                                <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-success">Buy Now</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('add_to_wishlist') }}" style="display:inline;">
+                                <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                                <button type="submit" class="btn btn-outline-secondary">Add to Wishlist</button>
+                            </form>
+                            <a href="{{ url_for('leave_review', book_id=book.book_id) }}" class="btn btn-info">Add Review</a>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,22 +110,14 @@
     </div>
 
     <!-- Pagination -->
-    {% if total_pages > 1 %}
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
-            <li class="page-item {% if page == 1 %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('bookstore', page=page-1, sort=sort) }}">Previous</a>
-            </li>
-            {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('bookstore', page=p, sort=sort) }}">{{ p }}</a>
+            {% for page_num in range(1, total_pages + 1) %}
+            <li class="page-item {% if page == page_num %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('bookstore', page=page_num, sort=sort) }}">{{ page_num }}</a>
             </li>
             {% endfor %}
-            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('bookstore', page=page+1, sort=sort) }}">Next</a>
-            </li>
         </ul>
     </nav>
-    {% endif %}
 </div>
 {% endblock %}

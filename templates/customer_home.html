@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Home{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ profile.first_name }} {{ profile.last_name }}!</h1>
+
+<div class="row">
+    <!-- Profile Summary -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3><i class="bi bi-person-fill me-2"></i> Your Profile</h3>
+                <p><strong>Email:</strong> {{ profile.email }}</p>
+                <p><strong>Username:</strong> {{ profile.username }}</p>
+                <p><strong>Address:</strong> {{ profile.street }}, {{ profile.city }}, {{ profile.state }} {{ profile.zipcode }}</p>
+                {% if profile.mailing_street %}
+                <p><strong>Mailing Address:</strong> {{ profile.mailing_street }}, {{ profile.mailing_city }}, {{ profile.mailing_state }} {{ profile.mailing_zipcode }}</p>
+                {% endif %}
+                {% if profile.favorite_genre %}
+                <p><strong>Favorite Genre:</strong> {{ profile.favorite_genre }}</p>
+                {% endif %}
+                <a href="{{ url_for('customer_info') }}" class="btn btn-primary-custom">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3><i class="bi bi-cart-fill me-2"></i> Your Cart</h3>
+                {% if cart_items %}
+                <ul class="list-group mb-3">
+                    {% for item in cart_items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center" style="background-color: #4a4a4a; color: #e0e0e0;">
+                        {{ item.title }} (x{{ item.quantity }})
+                        <span>${{ (item.price * item.quantity) | default(0) | float | round(2) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p><strong>Total:</strong> ${{ cart_total | default(0) | float | round(2) }}</p>
+                <a href="{{ url_for('cart') }}" class="btn btn-primary-custom">View Cart</a>
+                {% else %}
+                <p>Your cart is empty.</p>
+                <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom">Start Shopping</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommended Books -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h3><i class="bi bi-book-fill me-2"></i> Recommended Books</h3>
+        {% if recommendations %}
+        <div class="row">
+            {% for book in recommendations %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <img src="{{ book.image_url }}" class="card-img-top" alt="{{ book.title }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ book.title }}</h5>
+                        <p class="card-text">by {{ book.author }}</p>
+                        <p class="card-text"><strong>${{ book.price | default(0) | float | round(2) }}</strong></p>
+                        <p class="card-text"><small class="text-muted">Genre: {{ book.genre }}</small></p>
+                        <form method="POST" action="{{ url_for('add_to_cart') }}" style="display:inline;">
+                            <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-primary-custom btn-sm">Add to Cart</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('add_to_wishlist') }}" style="display:inline;">
+                            <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm ms-2">Add to Wishlist</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No recommendations available. Update your favorite genre or place an order to get personalized suggestions!</p>
+        <a href="{{ url_for('customer_info') }}" class="btn btn-primary-custom">Set Favorite Genre</a>
+        <a href="{{ url_for('bookstore') }}" class="btn btn-outline-secondary ms-2">Browse Books</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Wishlist -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h3><i class="bi bi-heart-fill me-2"></i> Your Wishlist</h3>
+        {% if wishlist %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in wishlist %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.author }}</td>
+                        <td>${{ item.price | default(0) | float | round(2) }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('add_to_cart_from_wishlist') }}" style="display:inline;">
+                                <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                <input type="number" name="quantity" value="1" min="1" class="form-control d-inline-block w-auto" style="width: 60px;">
+                                <button type="submit" class="btn btn-primary-custom btn-sm">Add to Cart</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('remove_from_wishlist') }}" style="display:inline;">
+                                <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                <button type="submit" class="btn btn-danger btn-sm ms-2">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>Your wishlist is empty.</p>
+        <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom">Add Books to Wishlist</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Orders -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h3><i class="bi bi-box-seam me-2"></i> Your Orders</h3>
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Book Title</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_id }}</td>
+                        <td>{{ order.title }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>${{ (order.price * order.quantity) | default(0) | float | round(2) }}</td>
+                        <td>{{ order.order_date }}</td>
+                        <td>
+                            <span class="badge {% if order.status == 'Pending' %}bg-warning{% elif order.status == 'Completed' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if order.status == 'Pending' %}
+                            <form method="POST" action="{{ url_for('cancel_order') }}" style="display:inline;">
+                                <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('order_tracking') }}" class="btn btn-primary-custom">View All Orders</a>
+        {% else %}
+        <p>You have no orders yet.</p>
+        <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom">Start Shopping</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

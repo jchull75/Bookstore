@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading">Error</h4>
+                <p>{{ message }}</p>
+                <a href="{{ url_for('admin_supplier_orders') }}" class="btn btn-primary-custom">Back to Supplier Orders</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

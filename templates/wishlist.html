@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Wishlist{% endblock %}
+
+{% block content %}
+<h1>Your Wishlist</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h3><i class="bi bi-heart-fill me-2"></i> Wishlist Tracker</h3>
+                <p class="lead">Manage your saved books.</p>
+                {% if wishlist %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Book Title</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in wishlist %}
+                            <tr>
+                                <td>{{ item.title }}</td>
+                                <td>${{ item.price | default(0) | float | round(2) }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('add_to_cart_from_wishlist') }}" style="display:inline;">
+                                        <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                        <input type="number" name="quantity" value="1" min="1" class="form-control d-inline-block w-auto" style="width: 70px;">
+                                        <button type="submit" class="btn btn-primary-custom btn-sm">Add to Cart</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('remove_from_wishlist') }}" style="display:inline;">
+                                        <input type="hidden" name="book_id" value="{{ item.book_id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No items in your wishlist.</p>
+                <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom mt-3">Browse Books</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5 text-center">
+    <a href="{{ url_for('bookstore') }}" class="btn btn-primary-custom"><i class="bi bi-book me-2"></i> Browse More Books</a>
+    <a href="{{ url_for('customer_home') }}" class="btn btn-outline-secondary ms-2"><i class="bi bi-house-door me-2"></i> Back to Profile</a>
+</div>
+{% endblock %}

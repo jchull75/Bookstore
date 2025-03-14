@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Customer Orders{% endblock %}
+
+{% block content %}
+<h1>Customer Orders</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h3><i class="bi bi-cart-fill me-2"></i> All Customer Orders</h3>
+        {% if customer_orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Email</th>
+                        <th>Book Title</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Payment Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in customer_orders %}
+                    <tr>
+                        <td>{{ order.order_id }}</td>
+                        <td>{{ order.customer_email }}</td>
+                        <td>{{ order.title }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>${{ (order.price * order.quantity) | default(0) | float | round(2) }}</td>
+                        <td>{{ order.order_date }}</td>
+                        <td>
+                            <span class="badge {% if order.status == 'Pending' %}bg-warning{% elif order.status == 'Completed' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.payment_method }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No customer orders found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary-custom"><i class="bi bi-arrow-left me-2"></i> Return to Dashboard</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2" onclick="return confirm('Are you sure you want to log out?');"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+</div>
+{% endblock %}

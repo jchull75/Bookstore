@@ -1,6 +1,6 @@
 import re
-import json  # Added this import to fix the NameError
-from flask import render_template, request, redirect, url_for, flash, session
+import json
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database_helper import DatabaseHelper
 
 db_helper = DatabaseHelper()
@@ -16,14 +16,18 @@ def register_routes(app):
             email = request.form["email"]
             password = request.form["password"]
             login_result = db_helper.login_user(email, password)
-            if login_result and not login_result["is_username"]:
-                session['email'] = email
-                session['role'] = db_helper.get_user_role(email)
-                session['cart'] = []
-                flash("✅ Login successful!", "success")
-                return redirect(url_for("bookstore"))
+            if login_result:
+                is_admin = login_result.get('is_admin', 0)
+                if not is_admin:  # Customer account
+                    session['email'] = email
+                    session['role'] = db_helper.get_user_role(email)
+                    session['cart'] = []
+                    flash("✅ Login successful!", "success")
+                    return redirect(url_for("bookstore"))
+                else:
+                    flash("❌ This is an admin account! Use Admin Login.", "error")
             else:
-                flash("❌ Invalid credentials or not a customer account!", "error")
+                flash("❌ Invalid credentials!", "error")
         return render_template("customer_login.html")
 
     @app.route("/admin_login", methods=["GET", "POST"])
@@ -32,14 +36,18 @@ def register_routes(app):
             username = request.form["username"]
             password = request.form["password"]
             login_result = db_helper.login_user(username, password)
-            if login_result and login_result["is_username"] and db_helper.get_user_role(username) == "admin":
-                session['username'] = username
-                session['role'] = "admin"
-                session['cart'] = []
-                flash("✅ Login successful!", "success")
-                return redirect(url_for("admin_dashboard"))
+            if login_result:
+                is_admin = login_result.get('is_admin', 0)
+                if is_admin and db_helper.get_user_role(username) == "admin":  # Admin account
+                    session['username'] = username
+                    session['role'] = "admin"
+                    session['cart'] = []
+                    flash("✅ Login successful!", "success")
+                    return redirect(url_for("admin_dashboard"))
+                else:
+                    flash("❌ This is not an admin account! Use Customer Login.", "error")
             else:
-                flash("❌ Invalid credentials or not an admin account!", "error")
+                flash("❌ Invalid credentials!", "error")
         return render_template("admin_login.html")
 
     @app.route("/signup", methods=["GET", "POST"])
@@ -382,7 +390,7 @@ def register_routes(app):
         conn.close()
         all_wishlists = []
         for email, wishlist_json in wishlist_data:
-            wishlist = json.loads(wishlist_json)  # Now works with json imported
+            wishlist = json.loads(wishlist_json)
             for item in wishlist:
                 book = db_helper.get_book_by_id(item["book_id"])
                 if book:
@@ -456,3 +464,9 @@ def register_routes(app):
         books, _ = db_helper.get_all_books(page=1, per_page=50)
         supplier_orders = db_helper.get_all_supplier_orders()
         return render_template("admin_suppliers.html", books=books, supplier_orders=supplier_orders)
+
+if __name__ == "__main__":
+    app = Flask(__name__)
+    app.secret_key = 'your_secret_key'  # Replace with a secure key
+    register_routes(app)
+    app.run(host='0.0.0.0', debug=True)
