@@ -656,6 +656,20 @@ def admin_dashboard():
     total_supplier_spend = sum(order['total'] for order in supplier_orders if order['total'] is not None)
     profit = total_sales - total_supplier_spend
     
+    # Sales by genre for Chart.js
+    conn = db_helper._get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT b.genre, SUM(o.quantity * b.price) as genre_sales
+        FROM Orders o
+        JOIN Books b ON o.book_id = b.book_id
+        WHERE o.status = 'Completed'
+        GROUP BY b.genre
+        HAVING genre_sales > 0
+    """)
+    genre_sales = [{'genre': row['genre'] or 'Unknown', 'sales': row['genre_sales']} for row in cursor.fetchall()]
+    conn.close()
+    
     analytics = {
         'total_sales': total_sales,
         'total_orders': len(customer_orders),
@@ -678,7 +692,8 @@ def admin_dashboard():
                            wishlists=wishlists, 
                            users=users, 
                            reviews=reviews, 
-                           analytics=analytics, 
+                           analytics=analytics,
+                           genre_sales=genre_sales,
                            **get_context())
 
 @app.route('/admin_supplier_orders', methods=['GET', 'POST'])
